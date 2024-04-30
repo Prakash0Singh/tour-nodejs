@@ -1,17 +1,26 @@
 const express = require('express');
 
 const router = express.Router();
+const verifyAuth = require('../middleware/verify_auth')
 
-const { aliasTopTours, getAllTours, addTours, getTour, updateTour, deleteTour } = require('../controllers/tour');
+const { aliasTopTours, getAllTours, addTours, getTour, updateTour, deleteTour, getTourStats, getMonthlyPlan } = require('../controllers/tour');
 
 router
     .route('/top-5-cheap')
     .get(aliasTopTours, getAllTours)
 
 router
+    .route('/tours-stats')
+    .get(getTourStats)
+
+router
+    .route('/monthly-plan/:year')
+    .get(getMonthlyPlan)
+
+router
     .route('/')
-    .get(getAllTours)
-    .post(addTours)
+    .get(verifyAuth, getAllTours)
+    .post(verifyAuth, addTours)
 
 router
     .route('/:id')

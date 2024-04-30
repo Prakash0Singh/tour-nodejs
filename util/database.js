@@ -1,7 +1,11 @@
 const mongoose = require('mongoose');
 const { ServerApiVersion } = require('mongodb');
 
-const mongoURI = '';
+// const mongoURI = 'mongodb+srv://sample:mVbzy8Tbfgnu8aRM@nodejs.qpgiiwr.mongodb.net/tour?retryWrites=true&w=majority&appName=nodejs';
+const mongoURI = process.env.DATABASE_URL.replace(
+  '<PASSWORD>',
+  process.env.DATABASE_PASSWORD
+);
 
 
 const mongoConnect = callback => {

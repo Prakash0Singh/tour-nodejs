@@ -4,11 +4,14 @@ const cors = require('cors');
 const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-
+const AppError = require('./util/appError')
 const tourRoutes = require('./routes/tour');
+const userRouted = require('./routes/user');
+const globalErrorHandler = require('./middleware/error')
 
 
 const app = express();
+app.use(cors());
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -30,7 +33,6 @@ const fileFilter = (req, file, cb) => {
 }
 
 
-app.use(cors())
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
@@ -45,6 +47,12 @@ app.use((error, req, res, next) => {
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
 app.use('/api/v1/tours', tourRoutes);
+app.use('/api/v1/users', userRouted);
+app.all('*', (req, res, next) => {
+    next(new AppError(`can't find ${req.originalUrl} on this server !`, 404));
+})
+
+app.use(globalErrorHandler)
 
 module.exports = app;
 
