@@ -4,7 +4,7 @@ const catchAsync = require('../util/catchAsyc');
 const AppError = require('../util/appError');
 const User = require('../models/user')
 
-module.exports = catchAsync(async (req, res, next) => {
+exports.verifyAuth = catchAsync(async (req, res, next) => {
 
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -17,6 +17,18 @@ module.exports = catchAsync(async (req, res, next) => {
 
     const freshUser = await User.findById(decoded.id);
     if (!freshUser) { return next(new AppError('Token belong to user does not exits', 401)) }
-    freshUser.changePasswordAfter(decoded.iat);
+
+    // if (freshUser.changePasswordAfter(decoded.iat)) {
+    //     return next(new AppError('User recently changed password', 401))
+    // }
+    req.user = freshUser;
     next();
 })
+
+exports.restrictTo = (...roles) => (req, res, next) => {
+    console.log(req.user.role)
+    if (!roles.includes(req.user.role)) {
+        return next(new AppError('You do not have permission to perform this action ', 403))
+    }
+    next()
+} 

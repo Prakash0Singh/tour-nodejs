@@ -1,7 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const verifyAuth = require('../middleware/verify_auth')
+const { verifyAuth, restrictTo } = require('../middleware/verify_auth')
 
 const { aliasTopTours, getAllTours, addTours, getTour, updateTour, deleteTour, getTourStats, getMonthlyPlan } = require('../controllers/tour');
 
@@ -25,6 +25,6 @@ router
 router
     .route('/:id')
     .get(getTour)
-    .patch(updateTour)
-    .delete(deleteTour)
+    .patch(verifyAuth, updateTour)
+    .delete(verifyAuth, restrictTo('admin', 'lead-guide'), deleteTour)
 module.exports = router;

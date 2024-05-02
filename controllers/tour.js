@@ -75,23 +75,14 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 
 })
 
-exports.deleteTour = async (req, res, next) => {
+exports.deleteTour = catchAsync(async (req, res, next) => {
     const prodId = req.params.id;
-    try {
-        await Tour.findByIdAndDelete(prodId)
-        res.status(204).json({
-            status: true,
-            message: 'Data deleted successfully.',
-        })
-    }
-    catch (error) {
-        const err = new Error(error);
-        err.status = false;
-        err.statusCode = 400;
-        next(err);
-    }
-
-}
+    await Tour.findByIdAndDelete(prodId)
+    res.status(204).json({
+        status: true,
+        message: 'Data deleted successfully.',
+    })
+})
 
 exports.getTourStats = async (req, res, next) => {
     try {
