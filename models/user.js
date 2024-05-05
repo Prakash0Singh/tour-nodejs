@@ -27,6 +27,7 @@ const user = new Schema({
         type: String,
         enum: ['user', 'guide', 'lead-guide', 'admin'],
         default: 'user',
+        select: false
     },
     password: {
         type: String,
@@ -47,7 +48,12 @@ const user = new Schema({
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
-    passwordResetExpire: Date
+    passwordResetExpire: Date,
+    active: {
+        type: Boolean,
+        default: true,
+        select: false
+    }
 },
     {
         timestamps: true,
@@ -65,6 +71,17 @@ user.pre('save', async function (next) {
     // deleteing passwordConfirm key 
     this.passwordConfirm = undefined;
     next();
+})
+
+user.pre('save', async function (next) {
+    if (!this.isModified('password') || this.isNew) return next();
+    this.passwordChangedAt = Date.now() - 1000;
+    next()
+})
+
+user.pre(/^find/, async function (next) {
+    this.find({ active: { $ne: false } });
+    next()
 })
 
 user.methods.correctPassword = async function (candidatePassword, userPassword) {

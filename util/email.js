@@ -2,13 +2,12 @@
 const { createTransport } = require('nodemailer');
 
 const SendEmail = async options => {
-
     const transporter = createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: 'sandbox.smtp.mailtrap.io',
+        port: 2525,
         auth: {
-            user: process.env.EMAIL_USERNAME,
-            pass: process.env.EMAIL_PASSWORD
+            user: '902387b8c31a6b',
+            pass: 'aa998fb17134d4'
         }
     })
 
@@ -21,7 +20,6 @@ const SendEmail = async options => {
     }
 
     await transporter.sendMail(mailOptions)
-
 }
 
 module.exports = SendEmail;
