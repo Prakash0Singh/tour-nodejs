@@ -3,6 +3,7 @@ const Tour = require('../models/tour');
 const APIFeatures = require('../util/apifeatures')
 const AppError = require('../util/appError')
 const catchAsync = require('../util/catchAsyc')
+const factory = require('./handlerFactory')
 
 exports.aliasTopTours = (req, res, next) => {
     req.query.limit = '5';
@@ -38,15 +39,6 @@ exports.getAllTours = async (req, res, next) => {
     }
 };
 
-exports.addTours = catchAsync(async (req, res, next) => {
-
-    await Tour.create(req.body)
-    res.status(201).json({
-        status: true,
-        message: 'Data added successfully.',
-    })
-})
-
 exports.getTour = catchAsync(async (req, res, next) => {
     const tour = await Tour.findById(req.params.id).populate('reviews');
     if (!tour) {
@@ -61,28 +53,19 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
 })
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-    const _id = req.params.id;
-    const tour = await Tour.findByIdAndUpdate(_id, req.body, {
-        new: true,
-        runValidators: true
-    })
-    res.status(200).json({
-        status: true,
-        data: tour,
-        message: 'Data updated successfully.',
-    })
+exports.addTours = factory.createOne(Tour)
+exports.updateTour = factory.updateOne(Tour)
 
-})
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//     const prodId = req.params.id;
+//     await Tour.findByIdAndDelete(prodId)
+//     res.status(204).json({
+//         status: true,
+//         message: 'Data deleted successfully.',
+//     })
+// })
 
-exports.deleteTour = catchAsync(async (req, res, next) => {
-    const prodId = req.params.id;
-    await Tour.findByIdAndDelete(prodId)
-    res.status(204).json({
-        status: true,
-        message: 'Data deleted successfully.',
-    })
-})
+exports.deleteTour = factory.deleteOne(Tour)
 
 exports.getTourStats = async (req, res, next) => {
     try {

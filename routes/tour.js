@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const { verifyAuth, restrictTo } = require('../middleware/verify_auth')
-
+const reviewRouter = require('./reviewRoute')
 const { aliasTopTours, getAllTours, addTours, getTour, updateTour, deleteTour, getTourStats, getMonthlyPlan } = require('../controllers/tour');
 
 router
@@ -27,4 +27,15 @@ router
     .get(getTour)
     .patch(verifyAuth, updateTour)
     .delete(verifyAuth, restrictTo('admin', 'lead-guide'), deleteTour)
+
+//review routes
+router.use('/:tourId/reviews', reviewRouter);
+// router
+//     .route('/:tourId/reviews')
+//     .post(
+//         verifyAuth,
+//         restrictTo('user'),
+//         reviewController.createReview
+//     )
+
 module.exports = router;
