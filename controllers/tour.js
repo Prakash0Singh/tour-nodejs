@@ -1,8 +1,5 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
 const Tour = require('../models/tour');
-const APIFeatures = require('../util/apifeatures')
-const AppError = require('../util/appError')
-const catchAsync = require('../util/catchAsyc')
 const factory = require('./handlerFactory')
 
 exports.aliasTopTours = (req, res, next) => {
@@ -12,46 +9,9 @@ exports.aliasTopTours = (req, res, next) => {
     next();
 }
 
-exports.getAllTours = async (req, res, next) => {
-    try {
+exports.getAllTours = factory.getAll(Tour)
 
-        const numTours = await Tour.countDocuments();
-
-        const features = new APIFeatures(Tour.find(), req.query)
-            .filter()
-            .sort()
-            .fields()
-            .pagination()
-        const tourslist = await features.query
-        res.status(200).json(
-            {
-                status: true,
-                totalRecords: numTours,
-                results: tourslist.length,
-                data: tourslist,
-                message: 'successfully get all data'
-            });
-    } catch (error) {
-        const err = new Error(error);
-        err.status = false;
-        err.statusCode = 400;
-        next(err);
-    }
-};
-
-exports.getTour = catchAsync(async (req, res, next) => {
-    const tour = await Tour.findById(req.params.id).populate('reviews');
-    if (!tour) {
-        return next(new AppError('No tour found with that ID', 404))
-    }
-    res.status(200).json(
-        {
-            status: true,
-            data: tour,
-            message: 'successfully get data'
-        });
-
-})
+exports.getTour = factory.getOne(Tour, { path: 'reviews' })
 
 exports.addTours = factory.createOne(Tour)
 exports.updateTour = factory.updateOne(Tour)

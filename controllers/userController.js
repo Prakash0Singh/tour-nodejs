@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const catchAsync = require('../util/catchAsyc');
+// const catchAsync = require('../util/catchAsyc');
 // const AppError = require('../util/appError');
 const factory = require('./handlerFactory')
 
@@ -15,15 +15,6 @@ exports.updateMe = factory.updateOne(User)
 
 exports.deleteMe = factory.deleteOne(User);
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-    const user = await User.find()
+exports.getUser = factory.getOne(User);
 
-    res.status(200).json({
-        status: true,
-        results: user.length,
-        data: {
-            user
-        },
-        message: "successfully fetch all users"
-    })
-})
+exports.getAllUsers = factory.getAll(User);

@@ -10,7 +10,10 @@ router.post('/login', authController.login);
 router.post('/forget-password', authController.forgotPassword);
 router.patch('/reset-password/:token', authController.resetPassword);
 router.patch('/update-password', verifyAuth, authController.updatePassword);
-router.patch('/:id', verifyAuth, userController.updateMe)
+
+router
+    .route('/:id')
+    .get(verifyAuth, userController.getUser)
 
 router.post('/update-me', verifyAuth, userController.updateMe);
 router.delete('/delete-me', verifyAuth, userController.deleteMe);
