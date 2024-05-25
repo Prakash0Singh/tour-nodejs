@@ -1,18 +1,20 @@
 const express = require('express');
 const { createReview, getAllReview, deleteReview, updateReview, setTourUserIds, getReview } = require('../controllers/reviewController')
-const { verifyAuth, restrictTo } = require('../middleware/verify_auth')
+const protectRoute = require('../middleware/verify_auth')
 
 const router = express.Router({ mergeParams: true });
 
+router.use(protectRoute.verifyAuth)
+
 router
     .route('/')
-    .get(verifyAuth, getAllReview)
-    .post(verifyAuth, restrictTo('user'), setTourUserIds, createReview)
+    .get(getAllReview)
+    .post(protectRoute.restrictTo('user'), setTourUserIds, createReview)
 
 router
     .route('/:id')
-    .get(verifyAuth, getReview)
-    .delete(verifyAuth, deleteReview)
-    .patch(verifyAuth, updateReview)
+    .get(getReview)
+    .patch(protectRoute.restrictTo('user', 'admin'), updateReview)
+    .delete(protectRoute.restrictTo('user', 'admin'), deleteReview)
 
 module.exports = router;

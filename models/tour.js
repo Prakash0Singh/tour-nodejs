@@ -107,7 +107,7 @@ const tour = new Schema({
         toObject: { virtuals: true }
     }
 )
-
+tour.index({ startLocation: '2dsphere' })
 
 tour.virtual('durationWeeks').get(function () {
     return this.duration / 7;

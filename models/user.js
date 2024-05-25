@@ -12,8 +12,9 @@ const user = new Schema({
         trim: true,
         validator: validator.isAlpha,
     },
-    images: {
+    photo: {
         type: String,
+        default: 'default-user.jpeg'
     },
     email: {
         type: String,

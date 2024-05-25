@@ -4,7 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-const multer = require('multer');
 const xss = require('xss-clean')
 const mongoSanitize = require('express-mongo-sanitize')
 const hpp = require('hpp');
@@ -12,32 +11,14 @@ const AppError = require('./util/appError')
 const tourRoutes = require('./routes/tour');
 const userRouted = require('./routes/user');
 const reviewRouted = require('./routes/reviewRoute');
+const bookingRoute = require('./routes/bookingRoute');
 const globalErrorHandler = require('./middleware/error')
-const { getAllUsers } = require('./controllers/userController')
-const { verifyAuth } = require('./middleware/verify_auth')
 const { limiter } = require('./middleware/rateLimiter')
 
 const app = express();
 app.use(cors());
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'images');
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-        cb(null, `${uniqueSuffix}-${file.originalname}`);
-    }
-});
 
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
-        cb(null, true);
-    }
-    else {
-        cb(null, false);
-    }
-}
 // Security HTTP 
 app.use(helmet());
 // Global Middleware
@@ -61,7 +42,7 @@ app.use(hpp({
 }));
 
 // For image uploads
-app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
+// app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
 app.use((error, req, res, next) => {
     res.status(500).json({ status: false, message: error })
 })
@@ -80,7 +61,8 @@ app.use((req, res, next) => {
 app.use('/api/v1/tours', tourRoutes);
 app.use('/api/v1/users', userRouted);
 app.use('/api/v1/reviews', reviewRouted);
-app.use('/api/v1/users', verifyAuth, getAllUsers)
+app.use('/api/v1/booking', bookingRoute);
+// app.use('/api/v1/users', verifyAuth, getAllUsers)
 app.all('*', (req, res, next) => {
     next(new AppError(`can't find ${req.originalUrl} on this server !`, 404));
 })
