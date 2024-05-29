@@ -1,7 +1,6 @@
 const path = require('path');
 const morgan = require('morgan');
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 const xss = require('xss-clean')
@@ -16,7 +15,13 @@ const globalErrorHandler = require('./middleware/error')
 const { limiter } = require('./middleware/rateLimiter')
 
 const app = express();
-app.use(cors());
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST,PATCH,PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+});
+
 
 
 // Security HTTP 
@@ -41,8 +46,7 @@ app.use(hpp({
     whitelist: ['duration']
 }));
 
-// For image uploads
-// app.use(multer({ storage: storage, fileFilter: fileFilter }).single('image'));
+
 app.use((error, req, res, next) => {
     res.status(500).json({ status: false, message: error })
 })
@@ -50,6 +54,7 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // For Static Files
 app.use(express.static(`${__dirname}/public`));
+app.set('view engine', 'pug');
 
 //Test middleware
 app.use((req, res, next) => {
@@ -58,11 +63,26 @@ app.use((req, res, next) => {
 })
 
 // ROUTES
+app.get('/', (req, res) => {
+    res.render('index');
+});
 app.use('/api/v1/tours', tourRoutes);
 app.use('/api/v1/users', userRouted);
 app.use('/api/v1/reviews', reviewRouted);
 app.use('/api/v1/booking', bookingRoute);
-// app.use('/api/v1/users', verifyAuth, getAllUsers)
+app.get('/api/v1/success', (req, res, next) => {
+    res.status(200).json({
+        status: true,
+        message: 'Item purchase successfully!!'
+    })
+});
+app.get('/api/v1/cancel', (req, res, next) => {
+    res.status(400).json({
+        status: false,
+        message: 'Cancel purchase '
+    })
+});
+
 app.all('*', (req, res, next) => {
     next(new AppError(`can't find ${req.originalUrl} on this server !`, 404));
 })

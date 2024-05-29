@@ -9,4 +9,9 @@ router.get('/checkout-session/:tourID',
     bookingController.getCheckoutSession
 )
 
+router.post('/purchase/:id',
+    protectRoute.verifyAuth,
+    bookingController.purchaseProduct
+)
+
 module.exports = router;

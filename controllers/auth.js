@@ -11,7 +11,7 @@ const signToken = id => jwt.sign(
     { expiresIn: process.env.JWT_EXPIRES_IN }
 )
 
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, res, url) => {
     const token = signToken(user._id);
     const cookieOptions = {
         expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
@@ -21,6 +21,7 @@ const createSendToken = (user, statusCode, res) => {
         cookieOptions.secure = true
     }
     user.password = undefined;
+    user.photo = `${url}/${user.photo}`
     res.cookie('jwt', token, cookieOptions).status(statusCode).json({
         status: true,
         token,
@@ -31,13 +32,13 @@ const createSendToken = (user, statusCode, res) => {
 }
 
 exports.signup = catchAsync(async (req, res, next) => {
-    // const newUser = await User.create({
-    //     name: req.body.name,
-    //     email: req.body.email,
-    //     password: req.body.password,
-    //     passwordConfirm: req.body.passwordConfirm
-    // });
-    const newUser = await User.create(req.body);
+    const newUser = await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        passwordConfirm: req.body.passwordConfirm
+    });
+    // const newUser = await User.create(req.body);
     const url = `${req.protocol}://${req.get('host')}/me`
     await new Email(newUser, url).sendWelcome()
     createSendToken(newUser, 201, res);
@@ -53,7 +54,8 @@ exports.login = catchAsync(async (req, res, next) => {
     if (!user || !await user.correctPassword(password, user.password)) {
         return next(new AppError('incorrect email or password', 401));
     }
-    createSendToken(user, 200, res)
+    const url = `${req.protocol}://${req.get('host')}/images/usersProfile`
+    createSendToken(user, 200, res, url)
 });
 
 exports.forgotPassword = catchAsync(async (req, res, next) => {
@@ -96,7 +98,8 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     user.passwordResetExpire = undefined
 
     await user.save();
-    createSendToken(user, 200, res)
+    const url = `${req.protocol}://${req.get('host')}/images/usersProfile`
+    createSendToken(user, 200, res, url)
 })
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -110,6 +113,8 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
     user.passwordConfirm = req.body.passwordConfirm;
     await user.save();
 
-    createSendToken(user, 200, res);
+    const url = `${req.protocol}://${req.get('host')}/images/usersProfile`
+
+    createSendToken(user, 200, res, url);
 
 })
