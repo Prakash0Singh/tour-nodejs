@@ -59,7 +59,6 @@ exports.resizeTourImages = catchAsyc(async (req, res, next) => {
 
         req.body.images.push(filename)
     }))
-    console.log(req.body)
     next()
 })
 

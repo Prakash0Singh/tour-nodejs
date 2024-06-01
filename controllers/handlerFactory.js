@@ -55,6 +55,12 @@ exports.getOne = (Model, populateOpt) => catchAsync(async (req, res, next) => {
     if (!doc) {
         return next(new AppError('No document found with that ID', 404))
     }
+    const baseUrl = `${req.protocol}://${req.get('host')}/images/tours/`;
+
+    // Update image paths
+    doc.imageCover = baseUrl + doc.imageCover;
+    doc.images = doc.images.map(image => baseUrl + image);
+
     res.status(200).json(
         {
             status: true,
@@ -80,6 +86,14 @@ exports.getAll = Model => catchAsync(async (req, res, next) => {
         .fields()
         .pagination()
     const doc = await features.query
+    const baseUrl = `${req.protocol}://${req.get('host')}/images/tours/`;
+
+    // Update image paths
+    doc.forEach(element => {
+        element.imageCover = baseUrl + element.imageCover;
+        element.images = element.images.map(image => baseUrl + image);
+    });
+
     res.status(200).json(
         {
             status: true,
