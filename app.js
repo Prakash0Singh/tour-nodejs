@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const express = require('express');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const xss = require('xss-clean')
 const mongoSanitize = require('express-mongo-sanitize')
 const hpp = require('hpp');
@@ -15,12 +16,13 @@ const globalErrorHandler = require('./middleware/error')
 const { limiter } = require('./middleware/rateLimiter')
 
 const app = express();
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST,PATCH,PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    next();
-});
+// app.use((req, res, next) => {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST,PATCH,PUT, DELETE');
+//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//     next();
+// });
+app.use(cors());
 
 
 
