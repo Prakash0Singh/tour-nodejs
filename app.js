@@ -53,7 +53,7 @@ app.use((error, req, res, next) => {
     res.status(500).json({ status: false, message: error })
 })
 app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/images/tours', express.static(path.join(__dirname, 'images/tours')));
+// app.use('/images/tours', express.static(path.join(__dirname, 'images/tours')));
 
 // For Static Files
 app.use(express.static(`${__dirname}/public`));
