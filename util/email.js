@@ -4,10 +4,9 @@ const nodemailer = require('nodemailer');
 const pug = require('pug')
 
 module.exports = class Email {
-    constructor(user, url) {
+    constructor(user) {
         this.to = user.email;
         this.firstName = user.name.split(' ')[0];
-        this.url = url;
         this.from = `Prakash Singh <${process.env.EMAIL_FROM}>`;
     }
 
@@ -32,7 +31,6 @@ module.exports = class Email {
         //send the actual email
         //1 Render HTML based  on pug template
         const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
-            url: this.url,
             subject
         })
         //2 Define Email options

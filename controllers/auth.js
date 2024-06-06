@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const sharp = require('sharp');
 const crypto = require('crypto');
 const User = require('../models/user');
 const catchAsync = require('../util/catchAsyc');
@@ -11,6 +13,7 @@ const signToken = id => jwt.sign(
     { expiresIn: process.env.JWT_EXPIRES_IN }
 )
 
+
 const createSendToken = (user, statusCode, res, url) => {
     const token = signToken(user._id);
     const cookieOptions = {
@@ -21,7 +24,7 @@ const createSendToken = (user, statusCode, res, url) => {
         cookieOptions.secure = true
     }
     user.password = undefined;
-    user.photo = `${url}/${user.photo}`
+    user.photo = `${url}${user.photo}`
     res.cookie('jwt', token, cookieOptions).status(statusCode).json({
         status: true,
         token,
@@ -30,18 +33,56 @@ const createSendToken = (user, statusCode, res, url) => {
         },
     })
 }
+const storage = multer.memoryStorage();
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
+        cb(null, true);
+    }
+    else {
+        cb(new AppError('Not an image! please upload only images.', 400), false);
+    }
+}
+
+exports.uploadUserPhoto = multer({ storage: storage, fileFilter: fileFilter }).single('photo')
+// Do not update password with this
+exports.getMe = (req, res, next) => {
+    req.params.id = req.user.id;
+    next();
+}
+
+exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
+    if (!req.file) return next();
+
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+    req.file.filename = `user-${uniqueSuffix}-photo.jpeg`;
+
+    await sharp(req.file.buffer)
+        .resize({
+            width: 500,
+            height: 500,
+            fit: 'fill',
+            position: 'centre'
+        })
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/images/usersProfile/${req.file.filename}`);
+
+    next()
+})
 
 exports.signup = catchAsync(async (req, res, next) => {
     const newUser = await User.create({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
-        passwordConfirm: req.body.passwordConfirm
+        passwordConfirm: req.body.passwordConfirm,
+        photo: req.file.filename
     });
     // const newUser = await User.create(req.body);
-    const url = `${req.protocol}://${req.get('host')}/me`
-    await new Email(newUser, url).sendWelcome()
-    createSendToken(newUser, 201, res);
+    const url = `${req.protocol}://${req.get('host')}/public/images/usersProfile/`;
+    await new Email(newUser).sendWelcome()
+    createSendToken(newUser, 201, res, url);
 })
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -54,7 +95,7 @@ exports.login = catchAsync(async (req, res, next) => {
     if (!user || !await user.correctPassword(password, user.password)) {
         return next(new AppError('incorrect email or password', 401));
     }
-    const url = `${req.protocol}://${req.get('host')}/images/usersProfile`
+    const url = `${req.protocol}://${req.get('host')}/public/images/usersProfile/`
     createSendToken(user, 200, res, url)
 });
 

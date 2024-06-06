@@ -1,5 +1,7 @@
 const multer = require('multer');
 const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs')
 const User = require('../models/user');
 const catchAsync = require('../util/catchAsyc');
 const AppError = require('../util/appError');
@@ -43,7 +45,6 @@ const filterObj = (obj, ...allowedFields) => {
 }
 
 exports.uploadUserPhoto = multer({ storage: storage, fileFilter: fileFilter }).single('photo')
-// Do not update password with this
 exports.getMe = (req, res, next) => {
     req.params.id = req.user.id;
     next();
@@ -64,7 +65,7 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
         })
         .toFormat('jpeg')
         .jpeg({ quality: 90 })
-        .toFile(`images/usersProfile/${req.file.filename}`);
+        .toFile(`public/images/usersProfile/${req.file.filename}`);
 
     next()
 })
@@ -74,7 +75,12 @@ exports.updateMe = catchAsync(async (req, res, next) => {
         return next(new AppError('This route is not for password updates.', 400))
     }
     const filterBody = filterObj(req.body, 'name', 'email');
-    if (req.file) filterBody.photo = req.file.filename
+    if (req.file) {
+        const profilePath = path.join(__dirname, `../public/images/usersProfile/${req.user.photo}`)
+        await fs.unlinkSync(profilePath);
+        filterBody.photo = req.file.filename;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(req.user.id, filterBody, { new: true, runValidators: true });
 
     res.status(200).json({
@@ -89,6 +95,27 @@ exports.createUser = factory.createOne(User);
 
 exports.deleteMe = factory.deleteOne(User);
 
-exports.getUser = factory.getOne(User);
+exports.getUser = catchAsync(async (req, res, next) => {
+
+    const query = User.findById(req.user.id);
+
+    const user = await query
+
+    if (!user) {
+        return next(new AppError('No document found with that ID', 404))
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}/public/images/usersProfile/`;
+    user.photo = baseUrl + user.photo;
+    res.status(200).json(
+        {
+            status: true,
+            data: {
+                data: user
+            },
+            message: 'successfully get document'
+        });
+
+})
 
 exports.getAllUsers = factory.getAll(User);

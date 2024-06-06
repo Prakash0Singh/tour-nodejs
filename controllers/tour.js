@@ -28,25 +28,8 @@ exports.resizeTourImages = catchAsyc(async (req, res, next) => {
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
     req.body.imageCover = `${req.params.id}-${uniqueSuffix}-image-cover.jpeg`;
 
-    await sharp(req.files.imageCover[0].buffer)
-        .resize({
-            width: 2000,
-            height: 1333,
-            fit: 'fill',
-            position: 'centre'
-        })
-        .toFormat('jpeg')
-        .jpeg({ quality: 90 })
-        .toFile(`images/tours/${req.body.imageCover}`)
-
-    // for tour-images Array
-    req.body.images = []
-
-    await Promise.all(req.files.images.map(async (file, i) => {
-        const uniquename = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-        const filename = `${req.params.id}-${uniquename}-tour-${i + 1}.jpeg`;
-
-        await sharp(file.buffer)
+    if (req.files.imageCover) {
+        await sharp(req.files.imageCover[0].buffer)
             .resize({
                 width: 2000,
                 height: 1333,
@@ -55,10 +38,32 @@ exports.resizeTourImages = catchAsyc(async (req, res, next) => {
             })
             .toFormat('jpeg')
             .jpeg({ quality: 90 })
-            .toFile(`images/tours/${filename}`)
+            .toFile(`images/tours/${req.body.imageCover}`)
 
-        req.body.images.push(filename)
-    }))
+    }
+    if (req.files.images) {
+
+        // for tour-images Array
+        req.body.images = []
+
+        await Promise.all(req.files.images.map(async (file, i) => {
+            const uniquename = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+            const filename = `${req.params.id}-${uniquename}-tour-${i + 1}.jpeg`;
+
+            await sharp(file.buffer)
+                .resize({
+                    width: 2000,
+                    height: 1333,
+                    fit: 'fill',
+                    position: 'centre'
+                })
+                .toFormat('jpeg')
+                .jpeg({ quality: 90 })
+                .toFile(`images/tours/${filename}`)
+
+            req.body.images.push(filename)
+        }))
+    }
     next()
 })
 

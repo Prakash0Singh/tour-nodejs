@@ -3,7 +3,6 @@ const morgan = require('morgan');
 const express = require('express');
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
-const cors = require('cors');
 const xss = require('xss-clean')
 const mongoSanitize = require('express-mongo-sanitize')
 const hpp = require('hpp');
@@ -16,13 +15,14 @@ const globalErrorHandler = require('./middleware/error')
 const { limiter } = require('./middleware/rateLimiter')
 
 const app = express();
-// app.use((req, res, next) => {
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST,PATCH,PUT, DELETE');
-//     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//     next();
-// });
-app.use(cors());
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST,PATCH,PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+});
+
+app.use('/public/images', express.static(path.join(__dirname, 'public/images')));
 
 
 
@@ -52,8 +52,8 @@ app.use(hpp({
 app.use((error, req, res, next) => {
     res.status(500).json({ status: false, message: error })
 })
-app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/images/tours', express.static(path.join(__dirname, 'images/tours')));
+// app.use('/images', express.static(path.join(__dirname, 'public/images')));
+// app.use('/images/tours', express.static(path.join(__dirname, 'public/images/tours')));
 
 // For Static Files
 app.use(express.static(`${__dirname}/public`));

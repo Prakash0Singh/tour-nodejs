@@ -5,7 +5,7 @@ const protectRoute = require('../middleware/verify_auth')
 
 const router = express.Router();
 
-router.post('/signup', authController.signup);
+router.post('/signup', authController.uploadUserPhoto, authController.resizeUserPhoto, authController.signup);
 router.post('/login', authController.login);
 router.post('/forget-password', authController.forgotPassword);
 router.patch('/reset-password/:token', authController.resetPassword);
